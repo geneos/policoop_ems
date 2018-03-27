@@ -105,11 +105,12 @@ class TransportRequest(ModelSQL, ModelView):
         ('event2', 'Internación'),
         ], 'Tipo de Servicio')
 
-    escort = fields.Text("Acompañante", help="Persona que acompaña al afectado en la ambulancia / Descripción o relación")
+    escort = fields.Text("Acompañante",
+        help="Persona que acompaña al afectado en la ambulancia / Descripción o relación")
 
     wait = fields.Selection([
         (None, ''),
-        ('event1', 'Si'),
+        ('event1', 'Sí'),
         ('event2', 'No'),
         ], '¿Con espera?', help="¿La ambulancia se queda esperando en el lugar?")
 
@@ -126,7 +127,8 @@ class TransportRequest(ModelSQL, ModelView):
         ], 'State', sort=False, readonly=True)
 
     lines = fields.One2Many(
-        'policoop.transport.line', 'inventory', 'Lines')
+        'policoop.transport.line', 'inventory',
+        'Lines', help='Product for the transport')
  
     @staticmethod
     def default_request_date():
