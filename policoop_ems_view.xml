@@ -96,7 +96,7 @@
         </record>
 
 <!-- Stock Inventory Lines -->
-
+<!--
         <record model="ir.ui.view" id="policoop_transport_inventory_line_form">
             <field name="model">policoop.transport.line</field>
             <field name="type">form</field>
@@ -108,6 +108,6 @@
             <field name="type">tree</field>
             <field name="name">transport_inventory_line_tree</field>
         </record>
-
+-->
     </data>
 </tryton>

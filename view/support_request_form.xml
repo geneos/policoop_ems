@@ -18,6 +18,11 @@
         <label name="place_occurrance"/>
         <field name="place_occurrance"/>
         <newline/>
+        <label name="event"/>
+        <field name="event"/>
+        <label name="calendar"/>
+        <field name="calendar"/>
+        <newline/>
         <label name="escort"/>
         <field name="escort"/>
     </group>
@@ -46,7 +51,6 @@
     <field colspan="4" name="request_extra_info"/>
     <newline/>
     <field colspan="4" name="ambulances"/>
-    <field colspan="4" name="lines"/>
     <newline/>
     <group id="request_footer" colspan="4" col="8">
         <label name="requestor"/>

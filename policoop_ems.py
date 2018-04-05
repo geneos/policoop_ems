@@ -36,7 +36,7 @@ from trytond.transaction import Transaction
 
 __all__ = [
     'PolicoopSequences','TransportRequest', 'AmbulanceTransport',
-    'TransportHealthProfessional', 'InventoryLine']
+    'TransportHealthProfessional']
 
 class PolicoopSequences(ModelSingleton, ModelSQL, ModelView):
     "Standard Sequences for Policoop"
@@ -105,7 +105,7 @@ class TransportRequest(ModelSQL, ModelView):
         ('event2', 'Internación'),
         ], 'Tipo de Servicio')
 
-    escort = fields.Text("Acompañante",
+    escort = fields.Text('Acompañante',
         help="Persona que acompaña al afectado en la ambulancia / Descripción o relación")
 
     wait = fields.Selection([
@@ -113,6 +113,17 @@ class TransportRequest(ModelSQL, ModelView):
         ('event1', 'Sí'),
         ('event2', 'No'),
         ], '¿Con espera?', help="¿La ambulancia se queda esperando en el lugar?")
+
+    event = fields.Boolean('Event')
+
+    event_id = fields.Many2One('calendar.event', 'CalDAV Event', readonly=True, 
+        states={'invisible': True})
+
+    calendar = fields.Many2One('calendar.calendar', 'Calendar',
+        states={
+            'invisible': Not(Bool(Eval('event'))),
+            'required': Bool(Eval('event')),
+            })
 
     ambulances = fields.One2Many(
         'policoop.ambulance.transport', 'sr',
@@ -126,9 +137,9 @@ class TransportRequest(ModelSQL, ModelView):
         ('closed', 'Closed'),
         ], 'State', sort=False, readonly=True)
 
-    lines = fields.One2Many(
-        'policoop.transport.line', 'inventory',
-        'Lines', help='Product for the transport')
+    # lines = fields.One2Many(
+    #     'policoop.transport.line', 'inventory',
+    #     'Lines', help='Product for the transport')
  
     @staticmethod
     def default_request_date():
@@ -162,8 +173,10 @@ class TransportRequest(ModelSQL, ModelView):
 
     @classmethod
     def create(cls, vlist):
-        Sequence = Pool().get('ir.sequence')
-        Config = Pool().get('policoop.sequences')
+        pool = Pool()
+        Sequence = pool.get('ir.sequence')
+        Config = pool.get('policoop.sequences')
+        Event = pool.get('calendar.event')
 
         vlist = [x.copy() for x in vlist]
         for values in vlist:
@@ -172,7 +185,62 @@ class TransportRequest(ModelSQL, ModelView):
                 values['code'] = Sequence.get_id(
                     config.transport_request_code_sequence.id)
 
+            if values['event'] == True:
+                r_date = values['return_date']
+                events = Event.create([{
+                    'dtstart': values['request_date'],
+                    'dtend': r_date,
+                    'calendar': values['calendar'],
+                    }])
+                
+                values['event_id'] = events[0].id
+
         return super(TransportRequest, cls).create(vlist)
+
+    @classmethod
+    def write(cls, records, values):
+        Event = Pool().get('calendar.event')
+
+        for record in records:
+            if record.calendar:
+                # TODO
+                continue
+
+            if record.event or values.get('event'):
+                if record.event and values['event'] == False:
+                    Event.delete(record.event_id)
+                    continue
+
+                if 'request_date' in values:
+                    req_date = values['request_date']
+                else:
+                    req_date = record.request_date
+
+                if 'return_date' in values:
+                    ret_date = values['return_date'],
+                else:
+                    ret_date = record.return_date
+                
+                if not record.event and values['event'] == True:
+                    events = Event.create([{
+                        'dtstart': req_date,
+                        'dtend': ret_date,
+                        'calendar': values['calendar'],
+                        }])
+                    values['event_id'] = events[0].id
+                    continue
+
+                if 'request_date' in values:
+                    Event.write([record.event_id], {
+                        'dtstart': req_date,
+                        })
+                if 'return_date' in values:
+                    Event.write([record.event_id], {
+                        'dtend': ret_date,
+                        })
+
+
+        return super(TransportRequest, cls).write(records, values)
 
 
     @classmethod
