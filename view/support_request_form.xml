@@ -23,8 +23,8 @@
         <label name="calendar"/>
         <field name="calendar"/>
         <newline/>
-        <label name="escort"/>
-        <field name="escort"/>
+        <label name="companion"/>
+        <field name="companion"/>
     </group>
     <newline/>
     <group id="request_place" string="Location">

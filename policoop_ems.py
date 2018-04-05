@@ -105,18 +105,19 @@ class TransportRequest(ModelSQL, ModelView):
         ('event2', 'Internación'),
         ], 'Tipo de Servicio')
 
-    escort = fields.Text('Acompañante',
+    companion = fields.Text('Companion',
         help="Persona que acompaña al afectado en la ambulancia / Descripción o relación")
 
     wait = fields.Selection([
         (None, ''),
-        ('event1', 'Sí'),
+        ('event1', 'Yes'),
         ('event2', 'No'),
-        ], '¿Con espera?', help="¿La ambulancia se queda esperando en el lugar?")
+        ], 'Has wait?', help="Does the ambulance have to wait on site until the event is over?")
 
     event = fields.Boolean('Event')
 
-    event_id = fields.Many2One('calendar.event', 'CalDAV Event', readonly=True, 
+    event_id = fields.Many2One('calendar.event', 'Calendar event', readonly=True,
+        ondelete='RESTRICT',
         states={'invisible': True})
 
     calendar = fields.Many2One('calendar.calendar', 'Calendar',
@@ -155,7 +156,6 @@ class TransportRequest(ModelSQL, ModelView):
     @staticmethod
     def default_state():
         return 'open'
-
 
     @fields.depends('latitude', 'longitude')
     def on_change_with_urladdr(self):
@@ -203,7 +203,7 @@ class TransportRequest(ModelSQL, ModelView):
 
         for record in records:
             if record.calendar:
-                # TODO
+                # TODO si cambia el calendario
                 continue
 
             if record.event or values.get('event'):
@@ -239,9 +239,16 @@ class TransportRequest(ModelSQL, ModelView):
                         'dtend': ret_date,
                         })
 
-
         return super(TransportRequest, cls).write(records, values)
 
+    @classmethod
+    def delete(cls, records):
+        Event = Pool().get('calendar.event')
+
+        for record in records:
+            if record.event:
+                Event.delete([record.event_id])
+        return super(TransportRequest, cls).delete(records)
 
     @classmethod
     def __setup__(cls):
