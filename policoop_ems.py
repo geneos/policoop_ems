@@ -103,10 +103,10 @@ class TransportRequest(ModelSQL, ModelView):
         (None, ''),
         ('event1', 'Alta'),
         ('event2', 'Internación'),
-        ], 'Tipo de Servicio')
+        ], 'Service type')
 
     companion = fields.Text('Companion',
-        help="Persona que acompaña al afectado en la ambulancia / Descripción o relación")
+        help="Relationship or description of the person accompanying the affected person")
 
     wait = fields.Selection([
         (None, ''),
