@@ -117,7 +117,6 @@ class TransportRequest(ModelSQL, ModelView):
     event = fields.Boolean('Event')
 
     event_id = fields.Many2One('calendar.event', 'Calendar event', readonly=True,
-        ondelete='RESTRICT',
         states={'invisible': True})
 
     calendar = fields.Many2One('calendar.calendar', 'Calendar',
@@ -200,17 +199,13 @@ class TransportRequest(ModelSQL, ModelView):
     @classmethod
     def write(cls, records, values):
         Event = Pool().get('calendar.event')
-
+        
         for record in records:
-            if record.calendar:
-                # TODO si cambia el calendario
-                continue
-
-            if record.event or values.get('event'):
-                if record.event and values['event'] == False:
-                    Event.delete(record.event_id)
-                    continue
-
+            if values.get('event') == False:
+                Event.delete([record.event_id])
+                values['event_id'] = None
+                values['calendar'] = None
+            else:
                 if 'request_date' in values:
                     req_date = values['request_date']
                 else:
@@ -221,11 +216,11 @@ class TransportRequest(ModelSQL, ModelView):
                 else:
                     ret_date = record.return_date
                 
-                if not record.event and values['event'] == True:
+                if not record.event and values.get('event') == True:
                     events = Event.create([{
                         'dtstart': req_date,
                         'dtend': ret_date,
-                        'calendar': values['calendar'],
+                        'calendar': values.get('calendar'),
                         }])
                     values['event_id'] = events[0].id
                     continue
@@ -238,6 +233,10 @@ class TransportRequest(ModelSQL, ModelView):
                     Event.write([record.event_id], {
                         'dtend': ret_date,
                         })
+            if values.get('calendar') and record.event == True:
+                Event.write([record.event_id], {
+                    'calendar': values['calendar']
+                })
 
         return super(TransportRequest, cls).write(records, values)
 
