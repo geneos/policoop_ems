@@ -88,9 +88,9 @@ class TransportRequest(ModelSQL, ModelView):
         ('transportation', 'Public transportation'),
         ('sports', 'Sports event'),
         ('publicbuilding', 'Public Building'),
+        ('urban', 'Urban Area'),
+        ('rural', 'Rural Area'),
         ('unknown', 'Unknown'),
-        ('urbanzone', 'Urban Zone'),
-        ('ruralzone', 'Rural zone'),
         ], 'Origin', help="Place of occurrance",sort=False)
 
     event_type = fields.Selection([
@@ -112,9 +112,9 @@ class TransportRequest(ModelSQL, ModelView):
         (None, ''),
         ('event1', 'Yes'),
         ('event2', 'No'),
-        ], 'Has wait?', help="Does the ambulance have to wait on site until the event is over?")
+        ], 'Wait', help="Does the ambulance have to wait on site until the event is over?")
 
-    event = fields.Boolean('Event')
+    event = fields.Boolean('Event', help="Create an event with this request?")
 
     event_id = fields.Many2One('calendar.event', 'Calendar event', readonly=True,
         states={'invisible': True})
@@ -307,6 +307,8 @@ class TransportHealthProfessional(ModelSQL, ModelView):
 
 
 # Copiado de tryton_stock/inventory.py
+# Al final no se hace el movimiento desde acá,
+# por lo que no se usa.
 class InventoryLine(ModelSQL, ModelView):
     'Stock Inventory Line'
     __name__ = 'policoop.transport.line'
