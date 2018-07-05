@@ -103,6 +103,8 @@ class TransportRequest(ModelSQL, ModelView):
         (None, ''),
         ('event1', 'Alta'),
         ('event2', 'Internación'),
+        ('event3', 'Derivación'),
+        ('event4', 'Estudios'),
         ], 'Service type')
 
     companion = fields.Text('Companion',
